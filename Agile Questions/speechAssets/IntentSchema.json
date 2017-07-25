@@ -1,5 +1,5 @@
 {"intents": [
-    {"intent": "RecipeIntent", "slots": [{"name" : "Terms", "type": "LIST_OF_ITEMS"}]},
+    {"intent": "RecipeIntent", "slots": [{"name" : "Item", "type": "LIST_OF_ITEMS"}]},
     {"intent": "AMAZON.RepeatIntent"},
     {"intent": "AMAZON.HelpIntent"},
     {"intent": "AMAZON.StopIntent"},

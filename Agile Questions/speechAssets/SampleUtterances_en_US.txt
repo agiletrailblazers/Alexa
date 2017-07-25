@@ -1,1 +1,2 @@
-RecipeIntent how can I build a {Term}
+RecipeIntent what is {Item}
+RecipeIntent what does {Item} mean
