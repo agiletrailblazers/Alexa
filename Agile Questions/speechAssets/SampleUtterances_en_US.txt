@@ -1,2 +1,4 @@
+CategoriesIntent {Category}
+
 RecipeIntent what is {Item}
 RecipeIntent what does {Item} mean
