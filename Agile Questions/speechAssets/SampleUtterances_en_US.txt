@@ -2,3 +2,6 @@ CategoriesIntent {Category}
 
 RecipeIntent what is {Item}
 RecipeIntent what does {Item} mean
+
+DigitalTransformIntent what is {Digital}
+DigitalTransformIntent what does {Digital} mean

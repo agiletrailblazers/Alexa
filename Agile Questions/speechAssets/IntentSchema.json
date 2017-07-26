@@ -1,8 +1,7 @@
 {"intents": [
     {"intent": "CategoriesIntent", "slots": [{"name" : "Category", "type": "LIST_OF_CATEGORIES"}]},
     {"intent": "RecipeIntent", "slots": [{"name" : "Item", "type": "LIST_OF_ITEMS"}]},
-    {"intent": "AMAZON.RepeatIntent"},
-    {"intent": "AMAZON.HelpIntent"},
+    {"intent": "DigitalTransformIntent", "slots": [{"name" : "Digital", "type": "LIST_OF_DIGITALTERMS"}]},
     {"intent": "AMAZON.StopIntent"},
     {"intent": "AMAZON.CancelIntent"}
   ]
