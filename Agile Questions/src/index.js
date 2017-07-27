@@ -14,30 +14,37 @@ exports.handler = function(event, context, callback) {
     alexa.execute();
 };
 
-var states = {
+// states of our state machine
+var states = Object.freeze({
     MAINCATEGORIES: '_MAINCATEGORIES',
     AGILEGLOSSARY: '_AGILEGLOSSARY',
     DIGITALTRANSFORM: '_DIGITALTRANSFORM',
     INNOVATION: '_INNOVATION'
-};
+});
 
+// map storing text related to certain states
 var categories = new Object();
-categories['agile glossary'] = {
+categories['agile glossary'] = Object.freeze({
   msg: 'Agile Glossary - You can ask me What does X mean? For example what does agile mean? Go ahead, ask me.',
   state: states.AGILEGLOSSARY,
-  repromt: 'Ask me more agile terms, or say: main menu.'
-};
-categories['digital transformation'] = {
+  repromt: 'Ask me more agile terms, or say: main menu.',
+  invalidTerm: 'Sorry, I am not fully developed yet. I can only handle basic agile terms.',
+  wrongQuestion: 'Wow, that was different.  Try again by asking: What Does X mean?'
+});
+categories['digital transformation'] = Object.freeze({
   msg: 'Digital Transformation - You can ask me What does X mean? For example what does Digital Transformation mean? Go ahead, ask me.',
   state: states.DIGITALTRANSFORM,
-  repromt: 'Ask me more agile terms, or say: main menu.'
-};
-categories['innovation'] = {
+  repromt: 'Ask me more digital transformation terms, or say: main menu.',
+  invalidTerm: 'Sorry, I am not fully developed yet. I can only handle basic agile terms.',
+  wrongQuestion: 'Wow, that was different.  Try again by asking: What Does X mean?'
+});
+categories['innovation'] = Object.freeze({
   msg: 'Innovation - You can ask me What does X mean? For example what does D T mean? Go ahead, ask me.',
   state: states.INNOVATION,
   repromt: 'Go ahead, ask me.'
-};
+});
 
+// This seems to be needed to launch the app in default state
 var newSessionHandlers = {
   'LaunchRequest': function() {
       this.attributes['speechOutput'] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME")) + ' ' + this.t("WELCOME_REPROMPT");
@@ -51,6 +58,7 @@ var newSessionHandlers = {
   }
 }
 
+// This is the main state handler. The application is navigated to this state at launch
 var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
 
     'NewSession': function() {
@@ -60,7 +68,7 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
     },
 
     'Unhandled': function () {
-      this.attributes['speechOutput'] = this.t("WELCOME_REPROMPT");
+      this.attributes['speechOutput'] = this.t('Wow, that was different. ') + this.t("WELCOME_REPROMPT");
       this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
       this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     },
@@ -85,13 +93,10 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech'])
       } else {
-        this.attributes['speechOutput'] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME")) + ' ' + this.t("WELCOME_REPROMPT");
-        // If the user either does not reply to the welcome message or says something that is not
-        // understood, they will be prompted again with this text.
+        this.attributes['speechOutput'] = this.t('Wow, that was different. ') + this.t("WELCOME_REPROMPT");
         this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
       }
-
     },
     'SessionEndedRequest': function () {
         console.log('session ended!');
@@ -101,9 +106,9 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
 
 });
 
+// handler for agile glossary state
 var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
     'RecipeIntent': function () {
-        console.log('gloassary state');
         var itemSlot = this.event.request.intent.slots.Item;
         var itemName;
         if (itemSlot && itemSlot.value) {
@@ -113,21 +118,17 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
         var cardTitle = this.t("DISPLAY_CARD_TITLE", this.t("SKILL_NAME"), itemName);
         var recipes = this.t("RECIPES");
         var recipe = recipes[itemName];
-
+        var category = categories['agile glossary'];
         if (recipe) {
             this.attributes['speechOutput'] = recipe;
-            var category = categories['agile glossary'];
             this.attributes['repromptSpeech'] = category.repromt;
             this.emit(':askWithCard', recipe, this.attributes['repromptSpeech'], cardTitle, recipe);
         } else {
-            var speechOutput = this.t("RECIPE_NOT_FOUND_MESSAGE");
-            var repromptSpeech = this.t("RECIPE_NOT_FOUND_REPROMPT");
+            var speechOutput = category.wrongQuestion;;
+            var repromptSpeech = category.repromt;;
             if (itemName) {
-                speechOutput += this.t("RECIPE_NOT_FOUND_WITH_ITEM_NAME", itemName);
-            } else {
-                speechOutput += this.t("RECIPE_NOT_FOUND_WITHOUT_ITEM_NAME");
+                speechOutput = category.invalidTerm;;
             }
-            speechOutput += repromptSpeech;
 
             this.attributes['speechOutput'] = speechOutput;
             this.attributes['repromptSpeech'] = repromptSpeech;
@@ -135,14 +136,14 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
             this.emit(':ask', speechOutput, repromptSpeech);
         }
     },
-    'AMAZON.StopIntent': function () {
-        this.emit('SessionEndedRequest');
+    'AMAZON.StopIntent': function() {
+      this.emit(':tell', "Goodbye!");
     },
-    'AMAZON.CancelIntent': function () {
-        this.emit('SessionEndedRequest');
+    'AMAZON.CancelIntent': function() {
+      this.emit(':tell', "Goodbye!");
     },
     'SessionEndedRequest':function () {
-        this.emit(':tell', this.t("STOP_MESSAGE"));
+        this.emit(":tell", "Goodbye!");
     },
     'MainMenuIntent': function () {
       this.handler.state = states.MAINCATEGORIES;
@@ -150,12 +151,13 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
     },
     'Unhandled': function () {
         var category = categories['agile glossary'];
-        this.attributes['speechOutput'] = "Sorry. That is not a valid question. We are in " + category.msg;
+        this.attributes['speechOutput'] = category.wrongQuestion;
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     }
 });
 
+// handler for digital transformation terms
 var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
     'DigitalTransformIntent': function () {
         var digitalSlot = this.event.request.intent.slots.Digital;
@@ -173,14 +175,11 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
             this.attributes['repromptSpeech'] = categories['digital transformation'].repromt;
             this.emit(':askWithCard', digital, this.attributes['repromptSpeech'], cardTitle, digital);
         } else {
-            var speechOutput = this.t("RECIPE_NOT_FOUND_MESSAGE");
-            var repromptSpeech = this.t("RECIPE_NOT_FOUND_REPROMPT");
-            if (digitalName) {
-                speechOutput += this.t("RECIPE_NOT_FOUND_WITH_ITEM_NAME", digitalName);
-            } else {
-                speechOutput += this.t("RECIPE_NOT_FOUND_WITHOUT_ITEM_NAME");
+            var speechOutput = category.wrongQuestion;
+            var repromptSpeech = category.repromt;;
+            if (itemName) {
+                speechOutput = category.invalidTerm;;
             }
-            speechOutput += repromptSpeech;
 
             this.attributes['speechOutput'] = speechOutput;
             this.attributes['repromptSpeech'] = repromptSpeech;
@@ -188,14 +187,14 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
             this.emit(':ask', speechOutput, repromptSpeech);
         }
     },
-    'AMAZON.StopIntent': function () {
-        this.emit('SessionEndedRequest');
+    'AMAZON.StopIntent': function() {
+      this.emit(':tell', "Goodbye!");
     },
-    'AMAZON.CancelIntent': function () {
-        this.emit('SessionEndedRequest');
+    'AMAZON.CancelIntent': function() {
+      this.emit(':tell', "Goodbye!");
     },
     'SessionEndedRequest':function () {
-        this.emit(':tell', this.t("STOP_MESSAGE"));
+        this.emit(":tell", "Goodbye!");
     },
     'MainMenuIntent': function () {
       this.handler.state = states.MAINCATEGORIES;
@@ -203,12 +202,11 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
     },
     'Unhandled': function () {
         var category = categories['digital transformation'];
-        this.attributes['speechOutput'] = "Sorry. That is not a valid question. We are in " + category.msg;
+        this.attributes['speechOutput'] = category.wrongQuestion;
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     }
 });
-
 
 var languageStrings = {
     "en": {
@@ -217,14 +215,9 @@ var languageStrings = {
             "DIGITALTRANSFORM": digitalTransform.DIGITALTERM_EN_US,
             "SKILL_NAME": "A T B",
             "WELCOME_MESSAGE": "Welcome to %s......",
-            "WELCOME_REPROMPT": "Here are your Categories: Digital transformation, Agile Glossary, or Innovation? Which one do you want?",
+            "WELCOME_REPROMPT": "Here are your Categories: Agile Glossary, Digital transformation, or Innovation? Which one do you want?",
             "DISPLAY_CARD_TITLE": "%s  - Description for %s.",
-            "STOP_MESSAGE": "Goodbye!",
-            "RECIPE_REPROMPT_MESSAGE": "Go ahead, ask me.",
-            "RECIPE_NOT_FOUND_MESSAGE": "I\'m sorry, I currently do not know ",
-            "RECIPE_NOT_FOUND_WITH_ITEM_NAME": "the description for %s. ",
-            "RECIPE_NOT_FOUND_WITHOUT_ITEM_NAME": "that description. ",
-            "RECIPE_NOT_FOUND_REPROMPT": "What else can I help with?"
+            "STOP_MESSAGE": "Goodbye!"
         }
     }
 };
