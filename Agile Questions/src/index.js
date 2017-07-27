@@ -28,21 +28,21 @@ var welcomeReprompt = 'Here are your Categories: Agile Glossary, Digital transfo
 // map storing text related to certain states
 var categories = new Object();
 categories['agile glossary'] = Object.freeze({
-  msg: 'Agile Glossary - You can ask me What does X mean? For example what does agile mean? Go ahead, ask me.',
+  msg: '<emphasis>Agile Glossary</emphasis> - You can ask me What does X mean? For example what does agile mean? Go ahead, ask me.',
   state: states.AGILEGLOSSARY,
   repromt: 'Ask me more agile terms, or say: main menu.',
   invalidTerm: 'Sorry, I am not fully developed yet. I can only handle basic agile terms.',
-  wrongQuestion: 'Wow, that was different.  Try again by asking: What Does X mean?'
+  wrongQuestion: '<say-as interpret-as="interjection">oh boy!</say-as>, that was different.  Try again by asking: What Does X mean?'
 });
 categories['digital transformation'] = Object.freeze({
-  msg: 'Digital Transformation - You can ask me What does X mean? For example what does Digital Transformation mean? Go ahead, ask me.',
+  msg: '<emphasis>Digital Transformation</emphasis> - You can ask me What does X mean? For example what does Digital Transformation mean? Go ahead, ask me.',
   state: states.DIGITALTRANSFORM,
   repromt: 'Ask me more digital transformation terms, or say: main menu.',
   invalidTerm: 'Sorry, I am not fully developed yet. I can only handle basic agile terms.',
-  wrongQuestion: 'Wow, that was different.  Try again by asking: What Does X mean?'
+  wrongQuestion: '<say-as interpret-as="interjection">oh boy!</say-as>, that was different.  Try again by asking: What Does X mean?'
 });
 categories['innovation'] = Object.freeze({
-  msg: 'Innovation - One of the fastest ways to innovation is typically a rapid proof of concept. Agile Trail Blazers can help you build a P O C around any technology; voice, artificial intelligence or blockchain in a rapid low-cost manner.<break time="2s"/>' + welcomeReprompt,
+  msg: '<emphasis>Innovation</emphasis> - One of the fastest ways to innovation is typically a rapid proof of concept. Agile Trail Blazers can help you build a P O C around any technology; voice, artificial intelligence or blockchain in a rapid low-cost manner.<break time="2s"/>' + welcomeReprompt,
   state: states.MAINCATEGORIES,
   repromt: welcomeReprompt
 });
@@ -71,7 +71,7 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
     },
 
     'Unhandled': function () {
-      this.attributes['speechOutput'] = this.t('Wow, that was different. ') + this.t("WELCOME_REPROMPT");
+      this.attributes['speechOutput'] = this.t('<say-as interpret-as="interjection">oh boy!</say-as>, that was different. ') + this.t("WELCOME_REPROMPT");
       this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
       this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     },
@@ -99,7 +99,7 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech'])
       } else {
-        this.attributes['speechOutput'] = this.t('Wow, that was different. ') + this.t("WELCOME_REPROMPT");
+        this.attributes['speechOutput'] = this.t('<say-as interpret-as="interjection">oh boy!</say-as>, that was different. ') + this.t("WELCOME_REPROMPT");
         this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
       }
