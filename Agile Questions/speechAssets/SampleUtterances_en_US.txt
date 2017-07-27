@@ -5,3 +5,5 @@ RecipeIntent what does {Item} mean
 
 DigitalTransformIntent what is {Digital}
 DigitalTransformIntent what does {Digital} mean
+
+MainMenuIntent {MainMenu}

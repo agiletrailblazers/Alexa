@@ -10,12 +10,12 @@ exports.handler = function(event, context, callback) {
     alexa.APP_ID = APP_ID;
     // To enable string internationalization (i18n) features, set a resources object.
     alexa.resources = languageStrings;
-    alexa.registerHandlers(newSessionHandlers, glossaryHandlers, digitalHandlers);
+    alexa.registerHandlers(newSessionHandlers, categoryHandlers, glossaryHandlers, digitalHandlers);
     alexa.execute();
 };
 
 var states = {
-    CATEGORIES: '_CATEGORIES',
+    MAINCATEGORIES: '_MAINCATEGORIES',
     AGILEGLOSSARY: '_AGILEGLOSSARY',
     DIGITALTRANSFORM: '_DIGITALTRANSFORM',
     INNOVATION: '_INNOVATION'
@@ -25,12 +25,12 @@ var categories = new Object();
 categories['agile glossary'] = {
   msg: 'Agile Glossary - You can ask me What does X mean? For example what does agile mean? Go ahead, ask me.',
   state: states.AGILEGLOSSARY,
-  repromt: 'Go ahead, ask me.'
+  repromt: 'Ask me more agile terms, or say: main menu.'
 };
 categories['digital transformation'] = {
   msg: 'Digital Transformation - You can ask me What does X mean? For example what does Digital Transformation mean? Go ahead, ask me.',
   state: states.DIGITALTRANSFORM,
-  repromt: 'Go ahead, ask me.'
+  repromt: 'Ask me more agile terms, or say: main menu.'
 };
 categories['innovation'] = {
   msg: 'Innovation - You can ask me What does X mean? For example what does D T mean? Go ahead, ask me.',
@@ -39,15 +39,36 @@ categories['innovation'] = {
 };
 
 var newSessionHandlers = {
+  'LaunchRequest': function() {
+      this.attributes['speechOutput'] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME")) + ' ' + this.t("WELCOME_REPROMPT");
+      this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
+      this.handler.state = states.MAINCATEGORIES;
+      this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
+  },
+
+  'Unhandled': function () {
+    this.emit('LaunchRequest');
+  }
+}
+
+var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
+
     'NewSession': function() {
         this.attributes['speechOutput'] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME")) + ' ' + this.t("WELCOME_REPROMPT");
         this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     },
-    "AMAZON.StopIntent": function() {
+
+    'Unhandled': function () {
+      this.attributes['speechOutput'] = this.t("WELCOME_REPROMPT");
+      this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
+      this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
+    },
+
+    'AMAZON.StopIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
-    "AMAZON.CancelIntent": function() {
+    'AMAZON.CancelIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
     'CategoriesIntent': function () {
@@ -76,15 +97,9 @@ var newSessionHandlers = {
         console.log('session ended!');
         //this.attributes['endedSessionCount'] += 1;
         this.emit(":tell", "Goodbye!");
-    },
-    'Unhandled': function () {
-        this.attributes['speechOutput'] = this.t("WELCOME_REPROMPT");
-        // If the user either does not reply to the welcome message or says something that is not
-        // understood, they will be prompted again with this text.
-        this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
-        this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     }
-};
+
+});
 
 var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
     'RecipeIntent': function () {
@@ -101,7 +116,8 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
 
         if (recipe) {
             this.attributes['speechOutput'] = recipe;
-            this.attributes['repromptSpeech'] = this.t("RECIPE_REPROMPT_MESSAGE");
+            var category = categories['agile glossary'];
+            this.attributes['repromptSpeech'] = category.repromt;
             this.emit(':askWithCard', recipe, this.attributes['repromptSpeech'], cardTitle, recipe);
         } else {
             var speechOutput = this.t("RECIPE_NOT_FOUND_MESSAGE");
@@ -128,9 +144,13 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
     'SessionEndedRequest':function () {
         this.emit(':tell', this.t("STOP_MESSAGE"));
     },
+    'MainMenuIntent': function () {
+      this.handler.state = states.MAINCATEGORIES;
+      this.emitWithState('NewSession');
+    },
     'Unhandled': function () {
         var category = categories['agile glossary'];
-        this.attributes['speechOutput'] = category.msg
+        this.attributes['speechOutput'] = "Sorry. That is not a valid question. We are in " + category.msg;
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     }
@@ -150,7 +170,7 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
 
         if (digital) {
             this.attributes['speechOutput'] = digital;
-            this.attributes['repromptSpeech'] = this.t("RECIPE_REPROMPT_MESSAGE");
+            this.attributes['repromptSpeech'] = categories['digital transformation'].repromt;
             this.emit(':askWithCard', digital, this.attributes['repromptSpeech'], cardTitle, digital);
         } else {
             var speechOutput = this.t("RECIPE_NOT_FOUND_MESSAGE");
@@ -177,9 +197,13 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
     'SessionEndedRequest':function () {
         this.emit(':tell', this.t("STOP_MESSAGE"));
     },
+    'MainMenuIntent': function () {
+      this.handler.state = states.MAINCATEGORIES;
+      this.emitWithState('NewSession');
+    },
     'Unhandled': function () {
         var category = categories['digital transformation'];
-        this.attributes['speechOutput'] = category.msg
+        this.attributes['speechOutput'] = "Sorry. That is not a valid question. We are in " + category.msg;
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     }
@@ -193,7 +217,7 @@ var languageStrings = {
             "DIGITALTRANSFORM": digitalTransform.DIGITALTERM_EN_US,
             "SKILL_NAME": "A T B",
             "WELCOME_MESSAGE": "Welcome to %s......",
-            "WELCOME_REPROMPT": "Here are your Categories: Digital transformation, Agile Glossary or Innovation? Which one do you want?",
+            "WELCOME_REPROMPT": "Here are your Categories: Digital transformation, Agile Glossary, or Innovation? Which one do you want?",
             "DISPLAY_CARD_TITLE": "%s  - Description for %s.",
             "STOP_MESSAGE": "Goodbye!",
             "RECIPE_REPROMPT_MESSAGE": "Go ahead, ask me.",
