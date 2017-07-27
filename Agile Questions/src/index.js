@@ -22,6 +22,9 @@ var states = Object.freeze({
     INNOVATION: '_INNOVATION'
 });
 
+var welcomeReprompt = 'Here are your Categories: Agile Glossary, Digital transformation, or Innovation? Which one do you want?';
+
+
 // map storing text related to certain states
 var categories = new Object();
 categories['agile glossary'] = Object.freeze({
@@ -39,9 +42,9 @@ categories['digital transformation'] = Object.freeze({
   wrongQuestion: 'Wow, that was different.  Try again by asking: What Does X mean?'
 });
 categories['innovation'] = Object.freeze({
-  msg: 'Innovation - You can ask me What does X mean? For example what does D T mean? Go ahead, ask me.',
-  state: states.INNOVATION,
-  repromt: 'Go ahead, ask me.'
+  msg: 'Innovation - One of the fastest ways to innovation is typically a rapid proof of concept. Agile Trail Blazers can help you build a P O C around any technology; voice, artificial intelligence or blockchain in a rapid low-cost manner.<break time="2s"/>' + welcomeReprompt,
+  state: states.MAINCATEGORIES,
+  repromt: welcomeReprompt
 });
 
 // This seems to be needed to launch the app in default state
@@ -88,7 +91,10 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
 
       var category = categories[categoryName];
       if (category){
-        this.handler.state = category.state;
+        if (categoryName.valueOf() != "innovation") {
+          this.handler.state = category.state;
+        }
+
         this.attributes['speechOutput'] = category.msg
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech'])
@@ -170,14 +176,15 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
         var digitals = this.t("DIGITALTRANSFORM");
         var digital = digitals[digitalName];
 
+        var category = categories['digital transformation'];
         if (digital) {
             this.attributes['speechOutput'] = digital;
-            this.attributes['repromptSpeech'] = categories['digital transformation'].repromt;
+            this.attributes['repromptSpeech'] = category.repromt;
             this.emit(':askWithCard', digital, this.attributes['repromptSpeech'], cardTitle, digital);
         } else {
             var speechOutput = category.wrongQuestion;
             var repromptSpeech = category.repromt;;
-            if (itemName) {
+            if (digitalName) {
                 speechOutput = category.invalidTerm;;
             }
 
@@ -215,7 +222,7 @@ var languageStrings = {
             "DIGITALTRANSFORM": digitalTransform.DIGITALTERM_EN_US,
             "SKILL_NAME": "A T B",
             "WELCOME_MESSAGE": "Welcome to %s......",
-            "WELCOME_REPROMPT": "Here are your Categories: Agile Glossary, Digital transformation, or Innovation? Which one do you want?",
+            "WELCOME_REPROMPT": welcomeReprompt,
             "DISPLAY_CARD_TITLE": "%s  - Description for %s.",
             "STOP_MESSAGE": "Goodbye!"
         }
