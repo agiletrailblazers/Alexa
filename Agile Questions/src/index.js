@@ -1,7 +1,7 @@
 'use strict';
 
 var Alexa = require('alexa-sdk');
-var APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
+var APP_ID = 'amzn1.ask.skill.78f18c0c-9f49-403b-b173-370f7ad99dfd'; // TODO replace with your app ID (OPTIONAL).
 var recipes = require('./recipes');
 var digitalTransform = require('./digitaltransform')
 
@@ -63,25 +63,28 @@ var newSessionHandlers = {
 
 // This is the main state handler. The application is navigated to this state at launch
 var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
-
+    // handles with new session is created
     'NewSession': function() {
         this.attributes['speechOutput'] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME")) + ' ' + this.t("WELCOME_REPROMPT");
         this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     },
-
+    // handles anything not handled explicityly
     'Unhandled': function () {
+      // in this case we will ask the user to select from the main categories
       this.attributes['speechOutput'] = this.t('<say-as interpret-as="interjection">oh boy!</say-as>, that was different. ') + this.t("WELCOME_REPROMPT");
       this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
       this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
     },
-
+    // handles stop intent
     'AMAZON.StopIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
+    // handles stop intent
     'AMAZON.CancelIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
+    // handles main menu categories intent
     'CategoriesIntent': function () {
       var categorySlot = this.event.request.intent.slots.Category;
       var categoryName;
@@ -91,19 +94,20 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
 
       var category = categories[categoryName];
       if (category){
-        if (categoryName.valueOf() != "innovation") {
-          this.handler.state = category.state;
-        }
-
+        // we found the term they mentioned. Thus provide the message for that category and
+        // switch the state to handle the given cagtegory.
+        this.handler.state = category.state;
         this.attributes['speechOutput'] = category.msg
         this.attributes['repromptSpeech'] = category.repromt;
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech'])
       } else {
+        // we didn't find the term. Prompt them with the welcome message
         this.attributes['speechOutput'] = this.t('<say-as interpret-as="interjection">oh boy!</say-as>, that was different. ') + this.t("WELCOME_REPROMPT");
         this.attributes['repromptSpeech'] = this.t("WELCOME_REPROMPT");
         this.emit(':ask', this.attributes['speechOutput'], this.attributes['repromptSpeech']);
       }
     },
+    // handles session end
     'SessionEndedRequest': function () {
         console.log('session ended!');
         //this.attributes['endedSessionCount'] += 1;
@@ -114,6 +118,7 @@ var categoryHandlers = Alexa.CreateStateHandler(states.MAINCATEGORIES, {
 
 // handler for agile glossary state
 var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
+     // handles intent related to agile glossary
     'RecipeIntent': function () {
         var itemSlot = this.event.request.intent.slots.Item;
         var itemName;
@@ -121,20 +126,20 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
             itemName = itemSlot.value.toLowerCase();
         }
 
-        var cardTitle = this.t("DISPLAY_CARD_TITLE", this.t("SKILL_NAME"), itemName);
         var recipes = this.t("RECIPES");
         var recipe = recipes[itemName];
         var category = categories['agile glossary'];
         if (recipe) {
+            // we found the term that they inquired. So respond with the answer
             this.attributes['speechOutput'] = recipe;
             this.attributes['repromptSpeech'] = category.repromt;
+
+            var cardTitle = this.t("DISPLAY_CARD_TITLE", this.t("SKILL_NAME"), itemName);
             this.emit(':askWithCard', recipe, this.attributes['repromptSpeech'], cardTitle, recipe);
         } else {
-            var speechOutput = category.wrongQuestion;;
-            var repromptSpeech = category.repromt;;
-            if (itemName) {
-                speechOutput = category.invalidTerm;;
-            }
+            // we didn't find the term.  So prompt the user that we don't know the term
+            var speechOutput = category.invalidTerm;
+            var repromptSpeech = category.repromt;
 
             this.attributes['speechOutput'] = speechOutput;
             this.attributes['repromptSpeech'] = repromptSpeech;
@@ -142,19 +147,25 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
             this.emit(':ask', speechOutput, repromptSpeech);
         }
     },
+    // handles stop intent
     'AMAZON.StopIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
+    // handles cancek intent
     'AMAZON.CancelIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
+    // handles session end
     'SessionEndedRequest':function () {
         this.emit(":tell", "Goodbye!");
     },
+    // handles main menu intent
     'MainMenuIntent': function () {
+      // switch to main state
       this.handler.state = states.MAINCATEGORIES;
       this.emitWithState('NewSession');
     },
+    // anything not handled explicityly will come here
     'Unhandled': function () {
         var category = categories['agile glossary'];
         this.attributes['speechOutput'] = category.wrongQuestion;
@@ -165,6 +176,7 @@ var glossaryHandlers = Alexa.CreateStateHandler(states.AGILEGLOSSARY, {
 
 // handler for digital transformation terms
 var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
+    // handles digital transformation intent
     'DigitalTransformIntent': function () {
         var digitalSlot = this.event.request.intent.slots.Digital;
         var digitalName;
@@ -172,21 +184,21 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
             digitalName = digitalSlot.value.toLowerCase();
         }
 
-        var cardTitle = this.t("DISPLAY_CARD_TITLE", this.t("SKILL_NAME"), digitalName);
         var digitals = this.t("DIGITALTRANSFORM");
         var digital = digitals[digitalName];
 
         var category = categories['digital transformation'];
         if (digital) {
+            // we found the term that they inquired. So respond with the answer
             this.attributes['speechOutput'] = digital;
             this.attributes['repromptSpeech'] = category.repromt;
+
+            var cardTitle = this.t("DISPLAY_CARD_TITLE", this.t("SKILL_NAME"), digitalName);
             this.emit(':askWithCard', digital, this.attributes['repromptSpeech'], cardTitle, digital);
         } else {
-            var speechOutput = category.wrongQuestion;
+            // we didn't find the term.  So prompt the user that we don't know the term
+            var speechOutput = category.invalidTerm;
             var repromptSpeech = category.repromt;;
-            if (digitalName) {
-                speechOutput = category.invalidTerm;;
-            }
 
             this.attributes['speechOutput'] = speechOutput;
             this.attributes['repromptSpeech'] = repromptSpeech;
@@ -194,19 +206,24 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
             this.emit(':ask', speechOutput, repromptSpeech);
         }
     },
+    // handles stop intent
     'AMAZON.StopIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
+    // handles cancel intent
     'AMAZON.CancelIntent': function() {
       this.emit(':tell', "Goodbye!");
     },
+    // handles session end
     'SessionEndedRequest':function () {
         this.emit(":tell", "Goodbye!");
     },
+    // handles main menu intent
     'MainMenuIntent': function () {
       this.handler.state = states.MAINCATEGORIES;
       this.emitWithState('NewSession');
     },
+    // anything not handled explicityly will come here
     'Unhandled': function () {
         var category = categories['digital transformation'];
         this.attributes['speechOutput'] = category.wrongQuestion;
