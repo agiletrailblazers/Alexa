@@ -31,14 +31,14 @@ categories['agile glossary'] = Object.freeze({
   msg: '<emphasis>Agile Glossary</emphasis> - You can ask me What does X mean? For example what does agile mean? Go ahead, ask me.',
   state: states.AGILEGLOSSARY,
   repromt: 'Ask me more agile terms, or say: main menu.',
-  invalidTerm: 'Sorry, I am not fully developed yet. I can only handle basic agile terms.',
+  invalidTerm: '<say-as interpret-as="interjection">uh oh!</say-as>. Sorry, I am not fully developed yet. I can only handle basic agile terms.',
   wrongQuestion: '<say-as interpret-as="interjection">oh boy!</say-as>, that was different.  Try again by asking: What Does X mean?'
 });
 categories['digital transformation'] = Object.freeze({
   msg: '<emphasis>Digital Transformation</emphasis> - You can ask me What does X mean? For example what does Digital Transformation mean? Go ahead, ask me.',
   state: states.DIGITALTRANSFORM,
   repromt: 'Ask me more digital transformation terms, or say: main menu.',
-  invalidTerm: 'Sorry, I am not fully developed yet. I can only handle basic agile terms.',
+  invalidTerm: '<say-as interpret-as="interjection">uh oh!</say-as>. Sorry, I am not fully developed yet. I can only handle basic digital transformation terms.',
   wrongQuestion: '<say-as interpret-as="interjection">oh boy!</say-as>, that was different.  Try again by asking: What Does X mean?'
 });
 categories['innovation'] = Object.freeze({
