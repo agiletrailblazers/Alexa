@@ -199,7 +199,7 @@ var digitalHandlers = Alexa.CreateStateHandler(states.DIGITALTRANSFORM, {
             // we didn't find the term.  So prompt the user that we don't know the term
             var speechOutput = category.invalidTerm;
             var repromptSpeech = category.repromt;;
-
+console.log("in the right handler: digital trans");
             this.attributes['speechOutput'] = speechOutput;
             this.attributes['repromptSpeech'] = repromptSpeech;
 
