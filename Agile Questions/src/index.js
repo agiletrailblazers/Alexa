@@ -7,7 +7,7 @@ var digitalTransform = require('./digitaltransform')
 
 exports.handler = function(event, context, callback) {
     var alexa = Alexa.handler(event, context);
-    alexa.APP_ID = APP_ID;
+    alexa.appId = APP_ID;
     // To enable string internationalization (i18n) features, set a resources object.
     alexa.resources = languageStrings;
     alexa.registerHandlers(newSessionHandlers, categoryHandlers, glossaryHandlers, digitalHandlers);
